@@ -1,0 +1,33 @@
+## LEP ALEPH experiment tune of Fortran PYTHIA
+## NB. Incomplete, since ALEPH also used a hacked PY5 with
+## hard-coded flavour-sector parameters.
+MSTJ(11)  3
+MSTJ(12)  2
+MSTJ(41)  2
+MSTJ(45)  5
+MSTJ(46)  0
+MSTJ(107) 4
+MSTJ(110) 2
+PARJ(41)  0.400
+PARJ(42)  1.03
+PARJ(21)  0.36
+PARJ(81)  0.32
+PARJ(82)  1.22
+PARJ(54) -0.0500
+PARJ(55) -0.0045
+PARJ(1)   0.095
+PARJ(2)   0.285
+PARJ(3)   0.58
+PARJ(4)   0.05
+PARJ(5)   0.5
+PARJ(19)  1.
+PARJ(25)  1.
+PARJ(26)  0.4
+MSTJ(51)  0
+PARJ(11)  0.55
+PARJ(12)  0.47
+PARJ(13)  0.60
+PARJ(14)  0.096
+PARJ(15)  0.032
+PARJ(16)  0.096
+PARJ(17)  0.16

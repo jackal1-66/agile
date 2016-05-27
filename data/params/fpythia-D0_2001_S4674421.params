@@ -1,0 +1,10 @@
+## Pythia config for D0_2001_S4674421 W/Z pT ratio analysis
+MSEL 0
+MSUB(1) 1
+MSUB(2) 1
+
+# ME invariant mass
+CKIN(1) 40
+
+@include fpythia-Zee.params
+@include fpythia-Wenu.params

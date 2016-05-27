@@ -1,0 +1,111 @@
+## -*- sh -*-
+## Analysis name completion for agile-runmc
+
+(type _filedir &> /dev/null) || \
+function _filedir() {
+	local cur prev commands options command
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    COMPREPLY=( $(compgen -W $* "$(ls ${cur}* 2> /dev/null)" -- ${cur}) )
+    return 0
+}
+
+
+function _agile_runmc() {
+	local cur prev commands options command
+	COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="--help --verbose --quiet --version --list-gens"
+    opts="$opts --list-used-params --out --param --sqrts --beams"
+    opts="$opts --seed --randomize-seed --paramfile --nevts"
+    opts="$opts --filter --paramtrf"
+    opts="$opts -h -n -o -p -P -b -s -S -l -Q -V"
+    if [[ ${cur} == -* ]] ; then
+        #if test -x "$(which agile-runmc)"; then
+        #    anas=$(agile-runmc --list-options)
+        #fi
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        if test -n "$COMPREPLY"; then
+            return 0
+        fi
+    fi
+
+    beams="LHC PP TEVATRON TVT PPBAR LEP E+E- EE"
+    if [[ ${prev} == -b || ${prev} == --beams ]]; then
+        COMPREPLY=( $(compgen -W "$beams" -- ${cur}) )
+        return 0
+    elif [[ ${cur} == "--beams=" ]] ; then
+        COMPREPLY=( $(compgen -W "$beams" --) )
+        return 0
+    fi
+
+    if [[ ${prev} == -P || ${prev} == --paramfile ]]; then
+        _filedir
+        oldCOMPREPLY=${COMPREPLY[@]}
+        pfiles=
+        searchpath="$AGILE_PARAMS_PATH"
+        if test -x "$(which agile-config)"; then
+            searchpath="$searchpath:$(agile-config --datadir)"
+        fi
+        for dir in ${searchpath//:/ }; do
+            if test -d "$dir"; then
+                pfiles="$pfiles `cd $dir && ls`"
+            fi
+        done
+        COMPREPLY=( $(compgen -W "$pfiles" -- ${cur}) $oldCOMPREPLY )
+        return 0
+    fi
+    if [[ ${prev} == -o || ${prev} == --out ]]; then
+        _filedir
+        return 0
+    fi
+    if [[ ${prev} == --paramtrf ]]; then
+        _filedir py
+        return 0
+    fi
+
+    ## Colon-escaping problem workaround
+    COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+    if test -x "$(which agile-runmc)"; then
+        gens=$(agile-runmc --list-gens)
+        COMPREPLY=( $(compgen -W "$gens $opts" -- ${cur}) )
+    fi
+
+    return 0
+}
+
+complete -F _agile_runmc agile-runmc
+
+
+##########################
+
+
+function _agile_config() {
+    local cur prev commands options command
+    COMPREPLY=()
+    #cur=`_get_cword`
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="--help --version"
+    opts="$opts --prefix --includedir --libdir --datadir"
+    opts="$opts --pythonpath --cppflags --ldflags --libs"
+    opts="$opts -h"
+    if [[ ${cur} == -* ]] ; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        if test -n "$COMPREPLY"; then
+            return 0
+        fi
+    fi
+
+    COMPREPLY=( $(compgen -W "$opts" -- ${cur}) )
+    if test -n "$COMPREPLY"; then
+        return 0
+    fi
+
+    return 0
+}
+
+
+complete -F _agile_config agile-config

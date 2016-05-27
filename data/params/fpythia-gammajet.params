@@ -1,0 +1,7 @@
+## This sets up jet + prompt photon event production for Pythia 6
+
+# Produce only gamma + jet (q,qbar,g) hard processes
+MSEL 0
+MSUB(14) 1
+MSUB(29) 1
+MSUB(115) 1

@@ -1,0 +1,8 @@
+#ifndef AGILE_LOGGING_FHH 
+#define AGILE_LOGGING_FHH
+
+namespace AGILe {
+  class Log;
+}
+
+#endif

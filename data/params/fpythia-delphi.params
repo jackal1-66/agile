@@ -1,0 +1,33 @@
+## LEP DELPHI experiment tune of Fortran PYTHIA
+## NB. Incomplete, since DELPHI also used a hacked PY5 with
+## hard-coded flavour-sector parameters.
+MSTJ(11)  3
+MSTJ(12)  3
+MSTJ(41)  2
+MSTJ(45)  5
+MSTJ(46)  3
+MSTJ(107) 4
+MSTJ(110) 2
+PARJ(41)  0.417
+PARJ(42)  0.850
+PARJ(21)  0.408
+PARJ(81)  0.297
+PARJ(82)  1.56
+PARJ(54) -0.03800
+PARJ(55) -0.00284
+PARJ(1)   0.099
+PARJ(2)   0.307
+PARJ(3)   0.59283
+PARJ(4)   0.07
+PARJ(5)   0.5
+PARJ(19)  0.5
+PARJ(25)  0.65
+PARJ(26)  0.23
+MSTJ(51)  0
+PARJ(11)  0.55
+PARJ(12)  0.55
+PARJ(13)  0.75
+PARJ(14)  0.090
+PARJ(15)  0.070
+PARJ(16)  0.085
+PARJ(17)  0.14

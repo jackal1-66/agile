@@ -1,0 +1,5 @@
+## Include Z -> e e config
+@include fpythia-Zee.params
+
+## Invariant mass of the fermion pair from the Z decay > 40 GeV
+CKIN(1) 40

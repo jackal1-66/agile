@@ -1,0 +1,4 @@
+## This is the set-up for the D0 2008 S7554427 inclusive gamma analysis
+
+# Produce only hard processes with prompt photons
+MSEL 10
