@@ -1,0 +1,11 @@
+## Switch off all processes
+MSEL 0
+## Switch on elastic scattering
+##MSUB(91) 1
+## Switch on single-diffractive events
+MSUB(92) 1
+MSUB(93) 1
+## Switch on double-diffractive events
+MSUB(94) 1
+## Switch on low-pT scattering
+MSUB(95) 1

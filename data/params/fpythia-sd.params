@@ -1,0 +1,5 @@
+## Switch off all processes
+MSEL 0
+## Switch on single-diffractive events
+MSUB(92) 1
+MSUB(93) 1

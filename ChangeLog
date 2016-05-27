@@ -1,0 +1,866 @@
+2013-09-10  Andy Buckley  <andy.buckley@cern.ch>
+
+	* Patch version 1.4.1, with the OS X fix below.
+
+	* Fixing default library lookup path for Macs by looking at
+	DYLD_LIBRARY_PATH as well as LD_LIBRARY_PATH (thanks to Dmitri
+	Konstantinov for the reminder!)
+
+2012-03-21  Andy Buckley  <andy.buckley@cern.ch>
+
+	* Version 1.4.0!
+
+2012-01-30  Andy Buckley  <andy.buckley@cern.ch>
+
+	* Bumping version to 1.4.0alpha0.
+
+	* Adding interface implementations for Phojet and Ariadne, from
+	Sharka Todorova.
+
+	* data/params/fpythia-Zbb.params: Adding a Pythia params file for
+	forcing Z->bb decays.
+
+2012-01-20  Andy Buckley  <andy.buckley@cern.ch>
+
+	* Patch from Gavin Hesketh, adding HERWIG param handling for the
+	IAPHIG and RMASS(201) params.
+
+2011-10-21  Andy Buckley  <andy@insectnation.org>
+
+	* Improving param file parsing to treat # as a comment character
+	also in the middle of lines. Fingers crossed that there are no
+	generators in which # characters are valid parts of param names,
+	or we'll have to cook up an escape or think again...
+
+2011-09-10  Andy Buckley  <andy@insectnation.org>
+
+	* configure.ac: Adding a check to make sure that no-one tries to
+	install into --prefix=$PWD.
+
+	* bin/agile-runmc: Setting params in the order specified rather
+	than the random order of the Python dict. The necessary sorting
+	info was actually already being stored but I'd forgotten to use it
+	to determine the iteration sequence. Thanks to Sara Alderweireldt
+	for the bug report.
+
+2011-09-04  Andy Buckley  <andy@insectnation.org>
+
+	* Add a str -> int cast for the randon seed meta-param handling.
+
+2011-08-14  Andy Buckley  <andy@insectnation.org>
+
+	* Add path-finding methods to the Python interface.
+
+2011-08-11  Andy Buckley  <andy@insectnation.org>
+
+	* Add PdfInfo filling to FPythia.cc.
+
+2011-07-29  Andy Buckley  <andy@insectnation.org>
+
+	* 1.3.0 release!
+
+2011-07-28  Andy Buckley  <andy@insectnation.org>
+
+	* Improving param file autocompletion.
+
+2011-07-20  Andy Buckley  <andy@insectnation.org>
+
+	* data/params: Add fpythia-ttbar-semileptonic.params.
+
+2011-07-19  Andy Buckley  <andy@insectnation.org>
+
+	* Bump version to 1.3.0beta1.
+
+	* src/FHerwig/*, src/AlpGen/AlpGenFHerwig*: Move the soft UE call
+	into the _doHadronise conditional blocks, and add such a block to
+	AlpGenFHerwig.
+
+2011-07-07  Andy Buckley  <andy@insectnation.org>
+
+	* Remove deprecated inclusion of share/RivetGun in the params file
+	search path.
+
+	* Adding RG:NumEvents and RG:Seed parameters to agile-runmc, based
+	on a patch from Anton Karneyeu.
+
+2011-07-06  Hendrik Hoeth <hendrik.hoeth@cern.ch>
+
+	* use -Wno-long-long
+
+2011-07-05  Andy Buckley  <andy@insectnation.org>
+
+	* Bumping version to beta0.
+
+	* Adding a proper config header, and using it to add a version()
+	function to the API, cf. Rivet.
+
+	* Adding several levels of filtering to the HepMC event record:
+	it's now possible to do no filtering, to strip the documentation
+	particles, and to strip all unstable and documentation
+	particles. The latter will break some analyses, but where it can
+	be used safely it reduces the output size by a factor of 4. The
+	default is to use no filtering.
+
+2011-06-28  Andy Buckley  <andy@insectnation.org>
+
+	* Adding the ability to use a user-supplied parameter
+	transformation function with agile-runmc.
+
+2011-06-27  Andy Buckley  <andy@insectnation.org>
+
+	* pyext/setup.py.in: Use CXXFLAGS and LDFLAGS safely in the Python
+	extension build, and improve the use of build/src directory
+	arguments.
+
+2011-06-18  Andy Buckley  <andy@insectnation.org>
+
+	* Adding a --precision switch (and API feature on AGILe::Run)
+	which is by default set to 10 digit precision rather than the HepMC
+	default of 16, to make the I/O a bit more efficient.
+
+2011-06-17  Andy Buckley  <andy@insectnation.org>
+
+	* Updating the HERWIG interface to be able to read LHEF
+	files... if the HERWIG binary has been built with the right dummy
+	routines, which Genser's one hasn't. Thanks to Simone Alioli for
+	this feature!
+
+2011-06-14  Andy Buckley  <andy@insectnation.org>
+
+	* Rewriting HERWIG status codes to better match the HepMC
+	standard: HERWIG status 2 is for partons -> status 3, and HERWIG
+	195->199 are unstable hadrons -> status 2.
+
+2011-06-06  Andy Buckley  <andy@insectnation.org>
+
+	* Testing maximal HepMC event chopping and adding --filter to the
+	command line completion
+
+	* Adding support for LHEF file reading in FPythia.
+
+2011-05-09  Andy Buckley  <andy@insectnation.org>
+
+	* Fixes to AlpGenFHerwig and AlpGenFHerwigJimmy vetoing behaviour
+	from Gavin Hesketh.
+
+2011-04-25  Andy Buckley  <andy@insectnation.org>
+
+	* Exclude the "." and ".." directory entries from generator version searches.
+
+2011-04-06  Andy Buckley  <andy@insectnation.org>
+
+	* Release 1.2.2!
+
+	* Fixes to the Charybdis interfaces.
+
+2011-04-05  Andy Buckley  <andy@insectnation.org>
+
+	* Getting the list of available generator versions (HERWIG,
+	PYTHIA, AlpGen, RapGap, & CASCADE) automatically (and being
+	careful about the .2 and .3 suffixes and duplicate removal).
+
+2011-02-22  Andy Buckley  <andy@insectnation.org>
+
+	* Fix AlpGenFHerwigJimmy to actually call JIMMY, based on
+	integrating the AlpGen veto function into the FHerwigJimmy
+	event-building calls.
+
+2011-02-02  Andy Buckley  <andy@insectnation.org>
+
+	* Trying to get the list of available LHAPDF versions
+	automatically (from a Genser-like file structure).
+
+2011-01-31  Andy Buckley  <andy@insectnation.org>
+
+	* Fix the IPROC setting in AlpGen + Herwig (+ Jimmy) -- thanks to
+	Gavin Hesketh for finding the problem and supplying the solution!
+
+	* Fix the Python event loop to *not* allocate an unused array the
+	size of the maximum number of events! This has a big effect on
+	memory for >= 1M events. Thanks to Gavin Hesketh for finding the problem.
+
+2011-01-28  Andy Buckley  <andy@insectnation.org>
+
+	* Add new Pythia params files for Z -> e e, mu mu and W -> mu nu
+	and W -> mu nu, e nu.
+
+	* Adapt fpythia-Z*.params files to only control the decays, not
+	the MSEL/MSUB process selection.
+
+2011-01-25  Andy Buckley  <andy@insectnation.org>
+
+	* Make FPythia and FHerwig set their beam particles' statuses = 4,
+	as per the HepMC standard.
+
+	* Update LHAPDF version list to include 5.8.4.
+
+2010-12-18  Andy Buckley  <andy@insectnation.org>
+
+	* AGILe 1.2.1 release.
+
+2010-12-09  Andy Buckley  <andy@insectnation.org>
+
+	* Converting supplied beam energies to momenta in FHerwig as
+	required by the HERWIG interface (the EBEAM1/2 params seemed to
+	not be used when I tried). It's a really nasty hack: rather than
+	have a lookup table of masses for this unimportant effect, I just
+	subtract 1 GeV**2 from the energy**2 if that beam particle is a
+	proton, antiproton or neutron. Someone else can do it properly ;-)
+
+	* Adding HERWIG 6.520 to the list of supported generators, since
+	Genser now has one. No idea what is in that -- the various
+	reported and long-overdue bug-fixes I guess. Almost certainly the
+	last HERWIG release! (Also adding more PYTHIA version
+	codes... just because.)  Automatically detecting the available
+	versions would be nice so we don't have to do this.
+
+	* Converting Generator::getName() to use a member variable, which
+	is set in the various generator interfaces.
+
+	* More FHerwig clean-ups.
+
+	* HERWIG problem fixed... at the cost of having to completely
+	restructure the FHerwig param and seed handling! Since IPROC and
+	the beam params need to be defined before HWIGIN is called, and we
+	want to be able to run HERWIG without *having* to specify an
+	IPROC, the other params need to be stored and applied
+	post-HWIGIN. If they were applied before, the HWIGIN
+	initialisation would just overwrite them. Argh!
+
+	* Include matrix element MC integration seeds in FHerwig::setSeed().
+
+	* Bump ABI version for 1.2.1 release.
+
+	* Move FHerwig HWIGIN call to initialize() -- trying to make sure
+	that initial state is known at time that initialisation is
+	called. Still not working for me.
+
+	* Make Pythia call PYTUNE immediately on setting the PYTUNE or
+	MSTP(5) variable, and never re-call it in PYINIT.
+
+	* Adding MSG_* logging macros.
+
+	* Adding correct SWIG compiler flags to SWIG test.
+
+	* Renaming fpythia-atlas params file to fpythia-atlas-mc08.
+
+2010-10-20  Andy Buckley  <andy@insectnation.org>
+
+	* Removing bad-idea default param files for PYTHIA and HERWIG.
+
+2010-10-14  Andy Buckley  <andy@insectnation.org>
+
+	* Removing dysfunctional weighting function for PYTHIA.
+
+2010-09-24  Andy Buckley  <andy@insectnation.org>
+
+	* Releasing AGILe 1.2.0 -- major new features are PYTHIA/HERWIG
+	event enhancement/weighting and the Cascade/Rapgap interfaces.
+
+2010-07-19  Andy Buckley  <andy@insectnation.org>
+
+	* Adding official API functions for path and LCG platform tag
+	getting.
+
+2010-07-16  Andy Buckley  <andy@insectnation.org>
+
+	* Restructuring SWIG module to a more general package with a SWIG
+	core.
+
+	* Requiring Python >= 2.4.
+
+2010-06-10  Andy Buckley  <andy@insectnation.org>
+
+	* Releasing AGILe 1.1.6.
+
+	* Now using Boost lexical_cast instead of stringstream for safety
+	and convenience.
+
+2010-06-01  Andy Buckley  <andy@insectnation.org>
+
+	* Upgrading the Python and SWIG checks to the cleverer ones from
+	recent Rivet releases.
+
+	* Fixing Loader to pick up Herwig, Charybdis and Cascade from
+	changed Genser locations, and to ensure that Jimmy and Herwig are
+	both picked from the ".3" Genser sub-version, and hence have the
+	same HEPEVT common block size: this fixes a memory corruption
+	issue which was making HW+JM exit with an error after only a small
+	number of events. Note that as a result of fixing these Genser
+	versions, the AGILe command-line name for Herwig has changed from
+	"Herwig:6510" to "Herwig:6.510".
+
+2010-05-07  Andy Buckley  <andy@insectnation.org>
+
+	* Adding params files for ALEPH and DELPHI PYTHIA tunes, thanks to
+	Sarka Todorova.
+
+	* Fix missing usage message on agile-runmc.
+
+	* Changing generator search path to only fall back to hard-coded
+	Genser AFS area if AGILE_GEN_PATH is not set. Spurred by wanting
+	to avoid AFS timeouts on systems with /afs mounted where there is
+	no valid token... the initialisation slowdown from this timeout
+	puzzled me for a *long* time, before I worked out that it was
+	connected to me having added AFS mounting to my laptop!
+
+2010-04-22  Andy Buckley  <andy@insectnation.org>
+
+	* Using unit conversion for all generators reading from
+	HEPEVT (i.e. all generators!).
+
+	* Adding HepMCTools.hh internal header, containing units
+	conversion routine for converting HEPEVT-dumped events in GeV/mm
+	convention to the current event's units if required.
+
+	* Holger added Cascade interface.
+
+2010-03-15  Andy Buckley  <andy@insectnation.org>
+
+	* Adding build of omitted libAGILeAlpGen.so library.
+
+	* Moved core components into src/Core to improve build flexibility.
+
+	* Holger added RapGap interface.
+
+2009-11-11  Andy Buckley  <andy@insectnation.org>
+
+	* Making params evaluate in order given on the command line / in
+	param files. The first occurence position is used if a parameter
+	is specified more than once, but the last-specified _value_ will
+	be used.
+
+2009-11-10  Andy Buckley  <andy@insectnation.org>
+
+	* Removing all traces of C++ generators, since I don't want to
+	give anyone the impression that this is a good way to run them.
+
+	* Adding --filter option to strip unphysical particles out of the
+	event record.
+
+	* Using shared_ptr to automatically manage the Run I/O pointers.
+
+2009-11-08  Andy Buckley  <andy@insectnation.org>
+
+	* Splitting Charybdis processing as for AlpGen, and hence adding a
+	proper CharybdisJimmy interface (and registering it in the Loader).
+
+	* Adding proper AlpGenJimmy library support to Loader.
+
+2009-10-23  Andy Buckley  <andy@insectnation.org>
+
+	* Writing event weights (and estimated errors) into HepMC (if
+	supported) for Fortran HERWIG.
+
+2009-10-21  Andy Buckley  <andy@insectnation.org>
+
+	* Completing documentation of HERWIG params.
+
+	* Adding errors to Pythia 6 cross-section estimate filling.
+
+2009-10-16  Andy Buckley  <andy@insectnation.org>
+
+	* Creating new Run object, to allow removal of Python HepMC
+	interface (which is no bad thing, but if forces a SWIG dependence
+	on the HepMC version, and SL doesn't have a sufficiently
+	functional copy of SWIG to be relied on.
+
+	* Using AlpGen interface by composition rather than inheritance:
+	AlpGenHerwigJimmy should now work.
+
+2009-06-10  Andy Buckley  <andy@insectnation.org>
+
+	* Using "embedded" hepmc.i in AGILe.i, as for rivet.i, to make an
+	1.1.4 alpha tarball which will work on lxplus and can be
+	bootstrapped with Rivet.
+
+2009-06-03  Andy Buckley  <andy@insectnation.org>
+
+	* Putting SWIG-generated source files under version control, to
+	make life easier for people who check out the SVN head but don't
+	have an up to date (or any) copy of SWIG.
+
+2009-04-07  Andy Buckley  <andy@insectnation.org>
+
+	* Adding $(DESTDIR) prefix to call to Python module "setup.py
+	install"
+
+2009-03-04  Andy Buckley  <andy@insectnation.org>
+
+	* Adding AGILE_DEBUG environment variable.
+
+	* Fixing SWIG build to allow reliable interchange of HepMC objects.
+
+2009-02-25  Andy Buckley  <andy@insectnation.org>
+
+	* Make Python extension etc. build by default.
+
+2009-01-22  Andy Buckley  <andy@insectnation.org>
+
+	* agile-runmc: added handling of an RG:Generator param, and hence
+	the ability to dump out a whole gen config, including run
+	conditions and generator name, using --list-used-analyses.
+
+2009-01-15  Andy Buckley  <andy@insectnation.org>
+
+	* Converting Python build system to bundle SWIG output in tarball.
+
+2009-01-05  Andy Buckley  <andy@insectnation.org>
+
+	* Python: replaced Python extension build process with a more
+	portable version based on distutils and newer m4 macros. Breaks
+	distcheck until distutils SWIG support is improved to support
+	multi-dir builds.
+
+2008-11-28  Andy Buckley  <andy@insectnation.org>
+
+	* Replaced binreloc with an upgraded and symbol-independent copy.
+
+2008-11-21  Andy Buckley  <andy@insectnation.org>
+
+	* Pre-emptively recognise Pythia 6.420, since we know there will
+	be one (it will include the Skands + Professor tune + Peter's
+	other 'Perugia' tunes).
+
+	* Moved RivetGun params into AGILe.
+
+	* Various command line tweaks, bug fixes and cosmetic improvements.
+
+2008-11-18  Hendrik Hoeth <hendrik.hoeth@cern.ch>
+
+	* Recognise Pythia 6.419
+
+2008-11-04  Andy Buckley  <andy@insectnation.org>
+
+	* Added bash completion file, minor UI bug fixes, and more
+	complete beam string handling.
+
+2008-10-30  Andy Buckley  <andy@insectnation.org>
+
+	* Added param file search path handling ("." + AGILE_PARAM_PATH),
+	and also support for an "include" statement in param files.
+
+2008-10-28  Andy Buckley  <andy@insectnation.org>
+
+	* Added Python access to AGILe log system, param dumping, RNG seed
+	control and flexible initial state energy, num events and beam
+	specification.
+
+2008-10-21  Andy Buckley  <andy@insectnation.org>
+
+	* Making Herwig++ call its initial-state setting before any params
+	are passed, since the AGILeGenerator object must be set up first.
+
+	* All generators will now try to load a "HEAD" version if
+	available.
+
+2008-10-09  Andy Buckley  <andy@insectnation.org>
+
+	* Fixed bug in FHerwigJimmy which meant that the event loop was
+	infinite.
+
+2008-10-07  Andy Buckley  <andy@insectnation.org>
+
+	* Added SWIG Python interface --- just mapping Loader and
+	Generator (ignoring GeneratorState). Seems to work!
+
+	* Added missing TinyXML source files --- Python refused to load
+	the library since the symbols weren't defined.
+
+2008-08-24  Andy Buckley  <andy@insectnation.org>
+
+	* Fixed Sherpa detection --- boostrapping now works on lxplus.
+
+	* Added unindexed MODPDF and AUTPDF param names to FHerwig, since
+	you usually want both particles to have the same PDF setup, and
+	this is a nice bit of syntactic sugar.
+
+	* Herwig++ setup now uses the flags suggested by the herwig-config
+	script, and --with-thepeg is no longer used.
+
+	* Set default FHerwig process to be QCD 2->2.
+
+	* Removed FHerwig MAXEV and MAXER param handling, since their role
+	is irrelevant within AGILe.
+
+	* Added error-handling loops to FHerwig and FHerwigJimmy, so that
+	Herwig errors are caught and the event is re-generated until it
+	behaves itself.
+
+2008-08-12  Andy Buckley  <andy@insectnation.org>
+
+	* Added a AGILE_USE_AFS variable which can be set to "no" to stop
+	AGILe's generator loader from automatically inserting GENSER's AFS
+	path into the gen search path.
+
+	* Removed default matrix elements from Herwig++.
+
+2008-08-11  Andy Buckley  <andy@insectnation.org>
+
+	* src/Loader.cc: Every call to getenv now uses a separate "const
+	char*" return variable. CMTCONFIG env variable no longer used,
+	since it was not there unless using an ATLAS/LHCb build shell and
+	was in the wrong tag format anyway.
+
+	* src/CCHerwig/CCHerwig.cc: Added handling of a special INFILE
+	parameter, which is used as the argument to a ThePEG "read"
+	command.
+
+	* src/Loader.cc: Factorized findGenLib function into several
+	smaller functions to aid memory problem investigation.
+
+2008-08-08  Andy Buckley  <abuckley@cern.ch>
+
+	* C++ generator configure now fails gracefully.
+
+	* AlpGen and Charybdis now work with both Herwig and Pythia from
+	the Genser versions. Hurrah!
+
+2008-08-05  Andy Buckley  <andy@insectnation.org>
+
+	* Removed setting of Sherpa EVENT_MODE and ANALYSIS switches, as
+	recommended by Frank Siegert.
+
+2008-08-04  Andy Buckley  <andy@insectnation.org>
+
+	* Changed AlpGen and Charybdis to load using the Genser names. Get
+	segfaults at the moment, but the libs are at least detected on
+	lxplus.
+
+	* Loader tries to find LHAPDF library in both the Genser structure
+	and as a fallback to the normal $prefix type area.
+
+2008-07-29  Andy Buckley  <andy@insectnation.org>
+
+	* Loader now prefers the '.2' versions of Genser gens if possible,
+	since for the Fortran gens these are compiled with the larger
+	10000-entry HEPEVT common blocks (as opposed to the default 4000)
+
+	* Automated Herwig and Pythia's acquiring common block sizes -
+	fixes a problem with CERN Pythia installations.
+
+	* Fixed wrong flags on agile-config
+
+2008-07-27  Andy Buckley  <andy@insectnation.org>
+
+	* Added better tests for Boost headers.
+
+	* Added testing for -ansi, -pedantic and -Wall compiler flags.
+
+	* Removed Status returns from the interface.
+
+2008-07-23  Andy Buckley  <andy@insectnation.org>
+
+	* Added explicit Boost header checks, since old versions may not
+	have all the necessary headers.
+
+2008-07-16  Andy Buckley  <andy@insectnation.org>
+
+	* Improved debug info in the loader (again!)
+
+	* Tries to fall back to more Genser directories, such as
+	$GENSER/MCGenerators (for forward compatibility with Genser
+	boostrap script with mkGenserArea), and also to try the old
+	lib<gen><version>.<ext> convention.
+
+	* Now uses Boost foreach (if Rivet can, so can AGILe!)
+
+2008-07-09  Andy Buckley  <andy@insectnation.org>
+
+	* Loader improvements: LHAPDF availability is now tested as for
+	generators, and is done only once.
+
+	* Upgraded Sherpa to use new HepMC interface fixes. This requires
+	the unreleased Sherpa 1.1.2, either from trunk or beta tarball.
+
+	* Replaced cout and cerr with proper logging classes.
+
+2008-07-07  Andy Buckley  <andy@insectnation.org>
+
+	* Added "AGILE_" namespacing to all header guards.
+
+	* Added flag to Sherpa build to disable warnings about deprecated
+	"const char*" to "char*" implicit conversions. We can't do
+	anything about this and it's not a "real" problem at the binary
+	level.
+
+	* Compatibility fixes for GCC 4.3.
+
+2008-07-04  Andy Buckley  <andy@insectnation.org>
+
+	* Loader now only tests that libraries are present rather than
+	dlopen/dlclosing them when building the "available gens"
+	list. This solves the problems we've seen where Sherpa being
+	present breaks all the other generators (for reasons not fully
+	understood.)
+
+	* More Sherpa improvements: SHERPA_CPP_PATH and RESULTS_DIRECTORY
+	are now created if they weren't already present.
+
+2008-06-19  Andy Buckley  <andy@insectnation.org>
+
+	* Fix to Sherpa interface - changed header name in Sherpa version
+	1.1.1.
+
+2008-06-11  Andy Buckley  <andy@insectnation.org>
+
+	* AGILe 1.1.1 release.
+
+2008-06-11  Jon Butterworth  <jmb@hep.ucl.ac.uk>
+
+	* Fixed dynamic loader for "enhanced" Herwigs to also load the
+	basic libAGILeFHerwig AGILe module.
+
+	* Added HWBEAM and HWUIDT param wrappers.
+
+2008-06-10  Andy Buckley  <andy@insectnation.org>
+
+	* Re-added assigning of the agilehandler variable in the library
+	loader. This had been accidentally removed but worked as a fluke
+	on Linux systems because dlsym seems to treat a null pointer as
+	meaning RTLD_DEFAULT: it broke on Mac OS X.
+
+2008-06-06  Andy Buckley  <andy@insectnation.org>
+
+	* Changed generator names to use a closer match to the Genser
+	convention, which means that Genser-convention version numbers can
+	be extracted. This fixes the problem with loading Pythia6 and
+	Pythia8 on CERN AFS.
+
+2008-06-03  Andy Buckley  <andy@insectnation.org>
+
+	* 1.1.0 release.
+
+2008-05-28  Andy Buckley  <andy@insectnation.org>
+
+	* Added conditional compilation of C++ generator Loader.cc entries
+	based on configure results, to avoid problems with AFS version of
+	SHERPA.
+
+2008-05-15  Andy Buckley  <andy@insectnation.org>
+
+	* Disabled loading f(py/hw)_dummies for AlgGen and Charybdis
+	interfaces, since they specialise the up* routines.
+
+	* Added LHAPDF loading to C++ gens.
+
+	* Fixed loading of LHAPDF in FHerwig and FPythia with fallback to
+	PDF dummy libs.
+
+2008-05-13  Andy Buckley  <andy@insectnation.org>
+
+	* Improved logging interface: log levels are now integers (for
+	cross-library compatibility and level setting also applies to
+	existing loggers.
+
+2008-05-09  Andy Buckley  <andy@insectnation.org>
+
+	* Added agile-config script.
+
+	* Merged Herwig++ 2.1 -> 2.2 implementation changes.
+
+2008-04-23  Andy Buckley  <andy@insectnation.org>
+
+	* Added a hack to make libtool able to use gfortran, thinking that
+	it's the F77 compiler.
+
+2008-03-19  Andy Buckley  <andy@insectnation.org>
+
+	* Added library versioning flags in the configure.ac file.
+
+	* Re-organised directory structure to allow builds of single
+	generators by "cd"ing to the appropriate subdirectory, and to
+	remove the redundant "Generators" layer.
+
+2008-03-19  Andy Buckley  <andy@insectnation.org>
+
+	* FPythia parameter passing now converts the param name to upper
+	case before passing to PYGIVE, since weird behaviour has been
+	noticed when passing the MDME params with lower-case names.
+
+2008-03-18  Andy Buckley  <andy@insectnation.org>
+
+	* Fixes to the Sherpa interface to make the paths work, to handle
+	the "normal makelibs exception" a bit better, and other general
+	tweaks. It now works, but SHERPA itself needs a patch to enable
+	the HepMC filling - this will be in the next version. HepMC >=
+	2.3.6 is required for the GenEvent copying to work properly.
+
+2008-02-08  Andy Buckley  <andy@insectnation.org>
+
+	* Fixes and extensions for HERA running added to FPythia and
+	FHerwig.
+
+2008-01-22  Andy Buckley  <andy@insectnation.org>
+
+	* FPythia now changed to use the Genser HEPEVT size of 10000 (the
+	mismatch with the previous default value of 4000 resulted in
+	generating lots of events with no momenta)
+
+2008-01-17  Andy Buckley  <andy@insectnation.org>
+
+	* Loader now tries to use the Genser liblinks area by default,
+	using a precomputed value and the CMTCONFIG variable as guesses
+	for the non-programmatic 'LGC platform tag'
+
+	* Fixed loader so that the FHerwig dummy HWAEND symbol gets
+	exported - FHerwig now works again.
+
+	* Added more configurable generator library loading, including new
+	AGILE_GEN_PATH variable.
+
+	* Added binreloc path detection.
+
+2007-11-26  Andy Buckley  <andy@insectnation.org>
+
+	* Removing RivetGun components and re-branding this project as
+	pure AGILe.
+
+	* Splitting generator library detection into AGIle
+
+2007-10-31  Andy Buckley  <andy@insectnation.org>
+
+	* Tagging as 1.0b3 for HERA-LHC meeting.
+
+	* Now dlopening LHAPDF all the time - this is because LHADF uses
+	some FPythia common blocks and the loading order is therefore
+	significant.
+
+2007-10-29  Andy Buckley  <andy@insectnation.org>
+
+	* Fixed FHerwigJimmy event loop: this aborted at the wrong point
+	and didn't handle MSPARM == 0 properly (it trapped it in an
+	infinite loop until the failure counter overflowed).
+
+	* Fixed istringstream handling of params by introducing the
+	templated as<T> functions and their asInt/Double/Bool wrappers in
+	Utils.hh. Previously the stream was being used many times, often
+	through stream failures, which led to nonsense results. The new
+	approach makes a new inline stream each time.
+
+	* Now linking LHAPDF against rivetgun executable.
+
+	* Got Charybdis working with FHerwig and loading properly (but not
+	running correctly) with FPythia.
+
+2007-10-28  Andy Buckley  <andy@insectnation.org>
+
+	* Using a vector of dlopen handles to allow arbitrary numbers of
+	libs to be dynamically loaded (dlopened).
+
+2007-10-23  Andy Buckley  <andy@insectnation.org>
+
+	* rivetgun now throws an error if it can't read a specified config
+	file.
+
+2007-10-18  Andy Buckley  <andy@insectnation.org>
+
+	* Removed default build of rivetgun-static.
+
+	* Using HepMC::GenEvent::clear() method.
+
+	* Removed defunct tests.
+
+	* Conversion of setParam methods to only implement the
+	string-valued one and to use stringstreams for type conversions
+	where needed.
+
+	* Added methods to Generator to perform common functionality:
+	these are conventionally called as utility functions by the
+	derived class implementations.
+
+	* Huge overhaul of generator classes: renames of Herwig++ class to
+	CCHerwig, introduction of AGILe namespace and header area, removal
+	of *Mod libraries, reworking of AlpGen, Jimmy and Charybdis
+	interfaces via inheritance, interface improvements to rivetgun.
+
+2007-10-16  James Monk
+
+	* Fixed dynamic loading for Mac OS X.
+
+2007-10-03  Andy Buckley  <andy@insectnation.org>
+
+	* Added more Herwig++ features: now works but leaks memory per
+	event.
+
+2007-10-02  Andy Buckley  <andy@insectnation.org>
+
+	* Removed explicit FPythia::setParam and Herwig::setParam methods,
+	except for inlined versions to call the Generator::setParam
+	defaults.
+
+	* Made Generator::makeEvent and Generator::setSeed methods pure
+	virtual, since throwing a runtime_error by default wasn't
+	producing any helpful hints to interface implementers.
+
+2007-09-28  Andy Buckley  <andy@insectnation.org>
+
+	* Added portable paths to the Herwig++ tester and moved the new
+	Herwig++ control code into the existing Herwig class, which
+	doesn't really do what we want.
+
+2007-09-26  Andy Buckley  <andy@insectnation.org>
+
+	* Added autoconf Fortran portability features to RivetGun
+	executables and the Fortran Herwig, Pythia, AlpGen and Charybdis
+	generators.
+
+2007-09-21  Andy Buckley  <andy@insectnation.org>
+
+	* rivetgun executable now tests for ability to dlopen() each
+	potential generator library when building the command line list of
+	valid generators.
+
+2007-06-24  Andy Buckley  <andy@insectnation.org>
+
+	* Changed the logging of event numbers to use a specific logger
+	and to assign different log levels to every 100th and 1000th
+	event. Most event numbers are now at the DEBUG level and so won't
+	be shown by default.
+
+	* src/Test/RivetGunInterfaceStatic.cc: Moved the available
+	generators code into a new include/RivetGun/AvailableGenerators.hh
+
+2007-06-16  Jon Butterworth  <jmb@hep.ucl.ac.uk>
+
+	* Make Pythia 6.411 the latest default.
+
+2007-06-01  Doug Gingrich <gingrich@ualberta.ca>
+
+	* Added Charybdis interfaces, not yet linking them.
+
+2007-05-23  Jon Butterworth  <jmb@hep.ucl.ac.uk>
+
+	* Added a local event counter for FPythia.
+
+2007-05-17  Andy Buckley  <andy@insectnation.org>
+
+	* Added convenience LTDL library, based on instructions at
+	http://www.gnu.org/software/libtool/manual.html#Distributing-libltdl
+
+2007-02-09  Leif Lönnblad  <Leif.Lonnblad@thep.lu.se>
+
+	* src/Test/RivetGunInterfaceStatic.cc: Now includes Generator.hh
+	to avoid compilation errors if stupid people try to compile
+	without any generators.
+
+2006-12-19  Andy Buckley  <andy.buckley@durham.ac.uk>
+
+	* Added src/Test/RivetGunInterfaceStatic.cc with command line
+	parsing handled by TCLAP (Templated Command Line Argument Parser).
+
+2005-12-27  Leif Lönnblad  <Leif.Lonnblad@thep.lu.se>
+
+	* configure.ac: Added -I$THEPEGPATH/include to AM_CPPFLAGS.
+
+	* Config/Rivet.h: Added some std incudes and using std::
+	declaration.
+
+	* Analysis/RivetInfo.*: Fixed some bugs. The RivetInfo facility
+	now works, although it has not been thoroughly tested.
+
+	* Analysis/Examples/TestMultiplicity.*: Re-introduced
+	FinalStateHCM for testing purposes but commented it away again.
+
+	* .: Made a number of changes to implement handling of RivetInfo
+	objects.

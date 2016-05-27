@@ -1,0 +1,7 @@
+## Pythia config for ALEPH_1996_S3196992 photon fragmentation analysis
+MSEL 0
+MSUB(1) 1
+MSUB(18) 1
+MSTJ(21) 0
+
+@include fpythia-Zhadronic.params

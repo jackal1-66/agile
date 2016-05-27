@@ -1,0 +1,2 @@
+noinst_LTLIBRARIES = libAGILeIO.la
+libAGILeIO_la_SOURCES = AGILeIO.cc

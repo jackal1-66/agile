@@ -1,0 +1,13 @@
+## Switch off all processes
+MSEL 0
+## Switch on double-diffractive events
+MSUB(94) 1
+## Switch on low-pT scattering
+MSUB(95) 1
+# ## Switch on QCD processes (already happens implicitly)
+# MSUB(11) 1
+# MSUB(12) 1
+# MSUB(13) 1
+# MSUB(28) 1
+# MSUB(53) 1
+# MSUB(68) 1

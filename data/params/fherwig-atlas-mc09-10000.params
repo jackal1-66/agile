@@ -1,0 +1,14 @@
+AUTPDF(1) = HWLHAPDF
+AUTPDF(2) = HWLHAPDF
+MODPDF(1) = 20650
+MODPDF(2) = 20650
+
+## Turn on Jimmy as underlying event.
+# JMBUG = 0
+JMUEO = 1
+PRSOF = 0
+MSFLAG = 1
+
+PTMIN = 10.0
+PTJIM = 5.8
+PRRAD = 2.2

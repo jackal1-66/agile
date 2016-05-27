@@ -1,0 +1,68 @@
+#! /usr/bin/env bash
+## -*- sh -*-
+## @configure_input@
+
+## These variables need to exist
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+datarootdir=@datarootdir@
+
+tmp=$(echo $* | egrep -- '--\<help\>|-\<h\>')
+if test $# -eq 0 || test -n "$tmp"; then
+    echo "agile-config: configuration tool for the AGILe generator interfaces"
+    echo "              http://projects.hepforge.org/agile/"
+    echo
+    echo "Usage: $( basename $0 ) [--help|-h] | "
+    echo "           [--{prefix,datadir,libdir,includedir}] | "
+    echo "           [--{cppflags,ldflags,ldlibs}] | "
+    echo "           [--version]"
+    echo "Options:"
+    echo "  --help | -h   : show this help message"
+    echo
+    echo "  --prefix      : show the installation prefix (cf. autoconf)"
+    echo "  --includedir  : show the path to the directory containing the AGILe headers"
+    echo "  --libdir      : show the path to the directory containing the AGILe libraries"
+    echo "  --datadir     : show the path to the directory containing shared data"
+    echo "  --pythonpath  : show the path(s) to the directory containing AGILe Python modules"
+    echo
+    echo "  --cppflags    : returns a Rivet '-I' string for insertion into CPPFLAGS"
+    echo "  --ldflags     : returns a Rivet '-L' string for insertion into LDFLAGS"
+    echo "  --libs        : returns a Rivet '-l' string for insertion into LIBS or LIBADD"
+    echo
+    echo "  --version     : returns Rivet release version number"
+fi
+
+OUT=""
+
+## "Atomic" build info, for "roll your own build" obsessives
+tmp=$( echo "$*" | egrep -- '--\<prefix\>')
+test -n "$tmp" && OUT="$OUT @prefix@"
+
+tmp=$( echo "$*" | egrep -- '--\<includedir\>')
+test -n "$tmp" && OUT="$OUT @includedir@"
+
+tmp=$( echo "$*" | egrep -- '--\<libdir\>')
+test -n "$tmp" && OUT="$OUT @libdir@"
+
+tmp=$( echo "$*" | egrep -- '--\<datadir\>')
+test -n "$tmp" && OUT="$OUT @datadir@/@PACKAGE_TARNAME@"
+
+tmp=$( echo "$*" | egrep -- '--\<pythonpath\>')
+test -n "$tmp" && OUT="$OUT @AGILE_PYTHONPATH@"
+
+## "Pre-rolled" build info
+tmp=$( echo "$*" | egrep -- '--\<cppflags\>')
+test -n "$tmp" && OUT="$OUT -I@includedir@"
+
+tmp=$( echo "$*" | egrep -- '--\<ldflags\>')
+test -n "$tmp" && OUT="$OUT -L@libdir@"
+
+tmp=$( echo "$*" | egrep -- '--\<libs\>|--\<ldadd\>')
+test -n "$tmp" && OUT="$OUT -lAGILe"
+
+
+## Version
+tmp=$( echo "$*" | egrep -- '--\<version\>')
+test -n "$tmp" && OUT="$OUT @PACKAGE_VERSION@"
+
+echo $OUT

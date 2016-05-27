@@ -1,0 +1,9 @@
+      SUBROUTINE HWAEND
+      RETURN
+      END
+
+      SUBROUTINE TIMEL(TRES)
+      REAL TRES
+      TRES=1E10
+      RETURN
+      END
