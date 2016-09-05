@@ -342,7 +342,6 @@ namespace AGILe {
         // Standard Pythia
         reqlibs = baselibs;
         reqlibs += GenLibInfo("libAGILeFPythia_pyevwt");
-        reqlibs += GenLibInfo("libpythia6_dummy", "pythia6", v);
         reqlibs += GenLibInfo("libAGILeFPythia");
         gens["Pythia6:" + v] = reqlibs;
         //
