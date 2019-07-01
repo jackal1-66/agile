@@ -130,14 +130,14 @@ AZ_PYTHON_DEFAULT
 if test x$enable_pyext == xyes; then
   AZ_PYTHON_PATH
   AZ_PYTHON_VERSION_ENSURE([2.4])
-  PYTHON_VERSION=`$PYTHON -c "import sys; print '.'.join(map(str, sys.version_info@<:@:2@:>@));"`
+  PYTHON_VERSION=`$PYTHON -c "from __future__ import print_function; import sys; print('.'.join(map(str, sys.version_info@<:@:2@:>@)));"`
   AC_SUBST(PYTHON_VERSION)
-  AGILE_PYTHONPATH=`$PYTHON -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='$prefix', plat_specific=True);"`
+  AGILE_PYTHONPATH=`$PYTHON -c "from __future__ import print_function; import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(prefix='$prefix', plat_specific=True));"`
   AC_SUBST(AGILE_PYTHONPATH)
   ## Test for Python header
   if test -x "$PYTHON"; then
     AC_MSG_CHECKING([for Python include path])
-    python_incpath=`$PYTHON -c "import distutils.sysconfig; print distutils.sysconfig.get_python_inc();"`
+    python_incpath=`$PYTHON -c "from __future__ import print_function; import distutils.sysconfig; print(distutils.sysconfig.get_python_inc());"`
     AC_MSG_RESULT([$python_incpath])
     python_header="$python_incpath/Python.h"
     if test -z "$python_incpath"; then
