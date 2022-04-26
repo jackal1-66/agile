@@ -1,0 +1,579 @@
+#! /usr/bin/env python
+
+"""Generate events and write to file or stdout
+
+EXAMPLES:
+  %prog <gen> [-p<param> ...] [-P<pfile> ...] \\
+        [-n<nevts>] [-o<outfile>] [--sqrts=<energy>] \\
+        [--beams=<beamsstr>] \\
+        [--seed=<rngseed> | --randomize-seed]
+  %prog --list-gens
+  %prog --list-used-params
+
+
+BEAM SPEC:
+  Beams can be specified in several different schemes. The
+  strings are compared case-insensitively. Energies are
+  specified in GeV. The energy must be explicitly specified,
+  either as part of the beam string (after a colon) or via
+  the --sqrts option.
+
+  * --beams=p:900,pbar:900
+  * --beams=ppbar:1960
+  * --beams=LHC:14000
+  * --beams=pp:14T
+
+  Beam particles:
+    * "proton", "2212", "p", "p+"
+    * "antiproton", "-2212", "pbar", "p-"
+    * "electron", "11", "e-"
+    * "positron", "-11", "e+"
+
+  Beam pair strings:
+    * pp: "LHC", "PP", "RHIC"
+    * ppbar: "TEVATRON", "TVT", "PPBAR"
+    * e+e-: "LEP", "E+E-", "EE"
+
+
+ENVIRONMENT:
+  * AGILE_GEN_PATH
+      Colon-separated list of filesystem paths which get checked
+      in order when searching for generator libraries in the
+      Genser structure. The current directory and the AGILe install
+      path are also searched, after AGILE_GEN_PATH.
+  * AGILE_PARAM_PATH
+      Colon-separated list of filesystem paths which get checked
+      in order when searching for generator parameter files as
+      passed to the -P option. The current directory and the AGILe
+      install path are also searched, after AGILE_PARAM_PATH.
+  * AGILE_DEBUG
+      Enables debug output level if set
+"""
+
+import os, logging, re, sys
+
+## Try to rename the process on Linux
+try:
+   import ctypes
+   libc = ctypes.cdll.LoadLibrary('libc.so.6')
+   libc.prctl(15, 'agile-runmc', 0, 0, 0)
+except Exception:
+   pass
+
+
+## Try to bootstrap the Python path
+import subprocess
+try:
+    modname = sys.modules[__name__].__file__
+    binpath = os.path.dirname(modname)
+    agileconfigpath = os.path.join(binpath, "agile-config")
+    agilepypath = commands.getoutput(agileconfigpath + " --pythonpath")
+    sys.path.append(agilepypath)
+except:
+    pass
+import AGILe
+
+
+## Randomly seed a random seed. Hmm.
+import random, time
+random.seed(time.time())
+RANDRANDSEED = random.randint(0, 100000000)
+
+
+## Parse command line arguments
+from optparse import OptionParser, OptionGroup
+parser = OptionParser(usage=__doc__)
+
+infogroup = OptionGroup(parser, "Information about generators and commands")
+infogroup.add_option("--list-gens", help="List the available generators",
+                     action="store_true", dest="LISTGENS", default=False)
+infogroup.add_option("--list-used-params", help="List the parameters passed to the generator by this command",
+                     action="store_true", dest="LISTPARAMS", default=False)
+parser.add_option_group(infogroup)
+
+rungroup = OptionGroup(parser, "Running the generators")
+rungroup.add_option("-n", "--nevts", help="Specify the number of events to generate",
+                    dest="NEVTS", default=None)
+rungroup.add_option("-b", "--beams", help="Specify the beams. Super-flexible!",
+                    dest="BEAMSTR", default=None)
+rungroup.add_option("-p", "--param", metavar="PNAME=PVAR", action="append", default=[],
+                    help="Change a generator parameter PNAME to value PVAL",
+                    dest="PARAMSTRS")
+rungroup.add_option("-P", "--paramfile", metavar="PFILE", action="append", default=[],
+                    help="Read a generator parameter file PFILE containing 'name = value' pairs",
+                    dest="PARAMFILES")
+rungroup.add_option("--paramtrf", metavar="TRFFILE.py", default=None,
+                    help="Read a Python file TRFFILE containing a definition of a "
+                    "parameter-transforming function 'paramtrf(paramdict)'. The function "
+                    "should return the transformed parameter dictionary. Useful for "
+                    "implementing meta-parameters. The beam energies can be used via the "
+                    "RG:Mom1 and RG:Mom2 param dict entries. The input parameters are of "
+                    "string type, and the output ones must be as well.",
+                    dest="PARAMTRFPYFILE")
+rungroup.add_option("-s", "--seed", help="Specify the generator random number seed",
+                    dest="RNGSEED", type="int", default=None)
+rungroup.add_option("--randomize-seed", help="Randomize the generator random number seed",
+                    action="store_const", const=RANDRANDSEED, dest="RNGSEED")
+parser.add_option_group(rungroup)
+
+outgroup = OptionGroup(parser, "HepMC output")
+outgroup.add_option("-o", "--out", help="Specify the file/pipe to write to. Use a '-' to write to stdout.",
+                    dest="OUTFILE", default=None)
+outgroup.add_option("--precision", help="Specify the HepMC I/O numerical precision",
+                    dest="PRECISION", type="int", default=10)
+outgroup.add_option("--filter", help="Strip unnecessary content from events. This can be useful to speed up "
+                    "event I/O, and to check that an analysis is not dependent on unphysical event record "
+                    "internals. Several filtering levels are available: 0 = no filtering; 1 = remove particles "
+                    "without status == {1,2,4}; 2 = as for 1, but also remove decayed particles with status == 2.",
+                    type="int", dest="FILTER_EVENTS", default=0)
+parser.add_option_group(outgroup)
+
+verbgroup = OptionGroup(parser, "Verbosity control")
+verbgroup.add_option("-l", dest="NATIVE_LOG_STRS", action="append",
+                  default=[], help="set a log level in the AGILe library")
+verbgroup.add_option("-q", "--quiet", help="Suppress normal messages", dest="LOGLEVEL",
+                  action="store_const", default=logging.INFO, const=logging.WARNING)
+verbgroup.add_option("-v", "--verbose", help="Add extra debug messages", dest="LOGLEVEL",
+                  action="store_const", default=logging.INFO, const=logging.DEBUG)
+parser.add_option_group(verbgroup)
+
+opts, args = parser.parse_args()
+
+
+## Change log level if AGILE_DEBUG env variable is set
+if 'AGILE_DEBUG' in os.environ:
+    opts.LOGLEVEL = logging.DEBUG
+
+
+## Configure logging
+try:
+    logging.basicConfig(level=opts.LOGLEVEL, format="%(message)s")
+except:
+    pass
+h = logging.StreamHandler()
+h.setFormatter(logging.Formatter("%(message)s"))
+logging.getLogger().setLevel(opts.LOGLEVEL)
+if logging.getLogger().handlers:
+    logging.getLogger().handlers[0] = h
+else:
+    logging.getLogger().addHandler(h)
+
+
+## Control AGILe logger
+for l in opts.NATIVE_LOG_STRS:
+    name, level = None, None
+    try:
+        name, level = l.split("=")
+    except:
+        name = "AGILe"
+        level = l
+    ## Fix name
+    if name != "AGILe" and not name.startswith("AGILe."):
+        name = "AGILe." + name
+    try:
+        ## Get right error type
+        LEVEL = level.upper()
+        if LEVEL == "TRACE":
+            level = AGILe.Log.TRACE
+        elif LEVEL == "DEBUG":
+            level = AGILe.Log.DEBUG
+        elif LEVEL == "INFO":
+            level = AGILe.Log.INFO
+        elif LEVEL == "WARNING" or LEVEL == "WARN":
+            level = AGILe.Log.WARN
+        elif LEVEL == "ERROR":
+            level = AGILe.Log.ERROR
+        else:
+            level = int(level)
+        logging.debug("Setting log level: %s %d" % (name, level))
+        ## Set log level
+        AGILe.Log.setLogLevel(name, level)
+    except:
+        logging.warning("Couldn't process logging string '%s'" % l)
+
+
+## Set up signal handling
+import signal
+RECVD_KILL_SIGNAL = None
+def handleKillSignal(signum, frame):
+    "Declare us as having been signalled, and return to default handling behaviour"
+    global RECVD_KILL_SIGNAL
+    logging.critical("Signal handler called with signal " + str(signum))
+    RECVD_KILL_SIGNAL = signum
+    signal.signal(signum, signal.SIG_DFL)
+## Signals to handle
+signal.signal(signal.SIGTERM, handleKillSignal);
+signal.signal(signal.SIGHUP,  handleKillSignal);
+signal.signal(signal.SIGINT,  handleKillSignal);
+signal.signal(signal.SIGUSR1, handleKillSignal);
+signal.signal(signal.SIGUSR2, handleKillSignal);
+try:
+    signal.signal(signal.SIGXCPU, handleKillSignal);
+except:
+    pass
+
+
+
+def readParamStrsFromFile(ppath):
+    paramstrs = []
+    pf = open(ppath, "r")
+    logging.debug("Reading param file '%s'" % ppath)
+    for line in pf:
+        if "#" in line:
+           line = line[:line.index("#")]
+        line = line.strip()
+        if not line:
+            continue
+        if re.match(r"@include \S+", line.lower()):
+            incfile = line.split()[1]
+            logging.info("Reading included parameters from %s" % incfile)
+            paramstrs += readParamFile(incfile)
+        else:
+            paramstrs.append(line)
+    pf.close()
+    return paramstrs
+
+
+def readParamFile(pfile):
+    global SEARCHPATH
+    ## If a path has been given, don't use the search path
+    if "/" in pfile:
+        logging.debug("Trying to read param file '%s'" % pfile)
+        if os.access(pfile, os.R_OK):
+            return readParamStrsFromFile(pfile)
+        else:
+            raise Exception("Could not read param file '%s'" % pfile)
+    else:
+        for pdir in SEARCHPATH:
+            ppath = os.path.join(pdir, pfile)
+            logging.debug("Trying to read param file '%s'" % ppath)
+            if os.access(ppath, os.R_OK):
+                return readParamStrsFromFile(ppath)
+        raise Exception("Could not find param file '%s'" % pfile)
+
+
+## Get parameter strings from file and CLI
+PARAMSTRS = []
+SEARCHPATH = ["."]
+try:
+    SEARCHPATH += os.getenv("AGILE_PARAM_PATH").split(":")
+except:
+    pass
+try:
+    installdir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    if os.path.basename(installdir) == "bin":
+        installdir = os.path.dirname(installdir)
+
+    agilesharedir = os.path.join(installdir, "share", "AGILe")
+    logging.debug("Adding %s to param file search path" % agilesharedir)
+    SEARCHPATH.append(agilesharedir)
+
+    uninstalledsharedir = os.path.join(installdir, "data", "params")
+    logging.debug("Adding %s to param file search path" % uninstalledsharedir)
+    SEARCHPATH.append(uninstalledsharedir)
+except:
+    pass
+logging.debug("Searching for param files in dirs: %s" % str(SEARCHPATH))
+try:
+    for pfile in opts.PARAMFILES:
+        PARAMSTRS += readParamFile(pfile)
+except Exception as e:
+    logging.error(e)
+    sys.exit(2)
+## Add CLI params
+PARAMSTRS += opts.PARAMSTRS
+
+
+## Interpret param strings
+def getKeyVal(pstr):
+    mypstr = pstr.strip().replace("=", " ")
+    parts = mypstr.split()
+    if len(parts) != 2:
+        logging.error("Invalid param string: '%s'" % pstr)
+        sys.exit(1)
+    return parts
+##
+PARAMKEYS = []
+PARAMS = {}
+for pstr in PARAMSTRS:
+    k, v = getKeyVal(pstr)
+    PARAMS[k] = v
+    if not k in PARAMKEYS:
+        PARAMKEYS.append(k)
+
+
+def _parse_energy(numstr):
+    import re
+    try:
+        e = float(numstr)
+        return e
+    except:
+        suffmatch = re.search(r"[^\d.]", numstr)
+        if not suffmatch:
+            raise ValueError("Bad energy string: %s" % numstr)
+        factor = base = None
+        suffstart = suffmatch.start()
+        if suffstart != -1:
+            base = numstr[:suffstart]
+            suffix = numstr[suffstart:]
+            if suffix.startswith("K"):
+                factor = 1e-6
+            elif suffix.startswith("M"):
+                factor = 1e-3
+            elif suffix.startswith("G"):
+                factor = 1
+            elif suffix.startswith("T"):
+                factor = 1e3
+        if factor is None or base is None:
+            raise ValueError("Bad energy string: %s" % numstr)
+        num = float(base) * factor
+        return num
+
+
+## Parse a beam string
+def _parseOneBeamStr(bstr):
+    if not ":" in bstr:
+        raise ValueError("Beam string must contain a colon to separate particle and energy parts")
+
+    name, energy = bstr.split(":")
+    energy = _parse_energy(energy)
+
+    pid = None
+    if name.lower() in ["proton", "2212", "p", "p+"]:
+        pid = AGILe.PROTON
+    elif name.lower() in ["antiproton", "-2212", "pbar", "p-"]:
+        pid = AGILe.ANTIPROTON
+    elif name.lower() in ["electron", "11", "e-"]:
+        pid = AGILe.ELECTRON
+    elif name.lower() in ["positron", "-11", "e+"]:
+        pid = AGILe.POSITRON
+    else:
+        raise Exception("Particle '%s' unknown" % name)
+    return pid, energy
+
+
+## Choose beam string
+## Defaults
+#BEAMSTR = "LHC:14TeV"
+BEAM1 = BEAM2 = "p"
+MOM1 = MOM2 = "7000"
+
+## Using params from file and command line
+if "RG:Beam1" in PARAMS:
+    BEAM1 = PARAMS["RG:Beam1"]
+if "RG:Beam2" in PARAMS:
+    BEAM2 = PARAMS["RG:Beam2"]
+if "RG:Mom1" in PARAMS:
+    MOM1 = PARAMS["RG:Mom1"]
+if "RG:Mom2" in PARAMS:
+    MOM2 = PARAMS["RG:Mom2"]
+
+## Set random number generator seed
+RNGSEED = 31415926
+if opts.RNGSEED is None:
+   if "RG:Seed" in PARAMS:
+      RNGSEED = int(PARAMS["RG:Seed"])
+else:
+   RNGSEED = opts.RNGSEED
+
+## Set number of events
+NEVTS = "10"
+if opts.NEVTS is None:
+   if "RG:NumEvents" in PARAMS:
+      NEVTS = PARAMS["RG:NumEvents"]
+else:
+   NEVTS = opts.NEVTS
+
+
+## Parse number-of-events string
+if not opts.LISTGENS and not opts.LISTPARAMS:
+    try:
+        factor = 1
+        base = NEVTS
+        suffix = NEVTS[-1]
+        if suffix.upper() == "K":
+            factor = 1000
+            base = NEVTS[:-1]
+        elif suffix == "M":
+            factor = 1000000
+            base = NEVTS[:-1]
+        num = int(float(base) * factor)
+        logging.info("Generating %d events" % num)
+        NEVTS = num
+    except:
+        logging.error("Invalid num events specification, '%s'" % NEVTS)
+        sys.exit(1)
+
+
+## Build beam string
+BEAMSTR = "%s:%s,%s:%s" % (BEAM1, MOM1, BEAM2, MOM2)
+## Override from params
+if "RG:Beams" in PARAMS:
+    BEAMSTR = PARAMS["RG:Beams"]
+## Override from command line
+if opts.BEAMSTR is not None:
+    BEAMSTR = opts.BEAMSTR
+## Declare what we've got so far
+logging.debug("Beam spec: " + BEAMSTR)
+
+
+## Parse the beams string
+try:
+    if "," in BEAMSTR:
+        beamAStr, beamBStr = BEAMSTR.split(",")
+        PID_A, E_A = _parseOneBeamStr(beamAStr)
+        PID_B, E_B = _parseOneBeamStr(beamBStr)
+    else:
+        if not ":" in BEAMSTR:
+            raise ValueError("Beams string must contain a colon to separate beam type and energy parts")
+        name, energyStr = BEAMSTR.split(":")
+        energy = _parse_energy(energyStr)
+        NAME = name.upper()
+        ## If only a total energy is given, assume collision is symmetric
+        E_A, E_B = energy/2.0, energy/2.0
+        #
+        if NAME in ["LHC", "PP", "RHIC"]:
+            PID_A = AGILe.PROTON
+            PID_B = AGILe.PROTON
+        elif NAME in ["TEVATRON", "TVT", "PPBAR"]:
+            PID_A = AGILe.PROTON
+            PID_B = AGILe.ANTIPROTON
+        elif NAME in ["LEP", "E+E-", "EE"]:
+            PID_A = AGILe.ELECTRON
+            PID_B = AGILe.POSITRON
+        elif NAME in ["HERA", "EP"]:
+            PID_A = AGILe.ELECTRON
+            PID_B = AGILe.PROTON
+            ## HERA uses asymmetric beams
+            ## People seem to quote anything between 296 to 300 GeV for Run I
+            ## These are the actual beam energies
+            if energy <= 300.0 and energy >= 295.0 :
+                E_A = 26.7
+                E_B = 820.0
+            ## Again, people quote a variety of different cms energies
+            elif energy >= 318.0 and energy <= 320.0 :
+                E_A = 27.5
+                E_B = 920
+        else:
+            raise Exception("Unrecognised beams string, '%s'" % BEAMSTR)
+except Exception as e:
+    logging.error("Beam parsing error: " + str(e))
+    sys.exit(1)
+logging.debug("Beams: %s @ %2.1f GeV -> <- %s @ %2.1f GeV" % (str(PID_A), E_A, str(PID_B), E_B))
+
+
+## List generators and exit, if requested
+if opts.LISTGENS:
+    gens = AGILe.getAvailableGens()
+    if len(gens) > 0:
+        allgensstr = "\n".join(AGILe.getAvailableGens())
+        #logging.info(allgensstr)
+        print(allgensstr)
+    sys.exit(0)
+
+
+## Determine the generator
+GEN = None
+## Override from params
+if "RG:Generator" in PARAMS:
+    GEN = PARAMS["RG:Generator"]
+## Override from command line
+if len(args) == 1:
+    GEN = args[0]
+## Declare what we've got so far
+logging.debug("Specified generator: " + str(GEN))
+
+
+## Push beam and gen choices back into the params dictionary, for dumping
+if "RG:Beams" in PARAMS:
+    del PARAMS["RG:Beams"]
+PARAMS["RG:Mom1"] = str(E_A)
+PARAMS["RG:Mom2"] = str(E_B)
+PARAMS["RG:Beam1"] = str(PID_A)
+PARAMS["RG:Beam2"] = str(PID_B)
+PARAMS["RG:Generator"] = str(GEN)
+
+
+## Transform parameters
+if opts.PARAMTRFPYFILE:
+   logging.info("Reading a parameter-transforming function from '%s'" % opts.PARAMTRFPYFILE)
+   execfile(opts.PARAMTRFPYFILE)
+   if "paramtrf" in dir():
+      logging.info("Calling parameter transformation function")
+      try:
+         PARAMS = paramtrf(PARAMS)
+         logging.info("New parameters: %s" % str(PARAMS))
+      except Exception as e:
+         logging.error("Problem in applying parameter transformation: %s" % str(e))
+         sys.exit(1)
+
+
+## List params and exit, if requested
+if opts.LISTPARAMS:
+    for k in sorted(PARAMS.keys()):
+        print(k, PARAMS[k])
+    sys.exit(0)
+
+
+## No generator specified?
+if GEN is None:
+    allgensstr = "\n  ".join(AGILe.getAvailableGens())
+    msg = "No generator specified.\n"
+    if len(allgensstr) > 0:
+        msg += "Available generators:\n  %s" % allgensstr
+    else:
+        msg += "No generators are available! Check your AGILE_GEN_PATH variable."
+    logging.error(msg)
+    sys.exit(1)
+
+
+## Invalid generator specified
+if GEN not in AGILe.getAvailableGens():
+    allgensstr = "\n  ".join(AGILe.getAvailableGens())
+    msg = "Generator '%s' is not a valid choice.\n" % GEN
+    msg += "Available generators:\n  %s" % allgensstr
+    logging.error(msg)
+    sys.exit(1)
+
+
+## Valid generator specified -- hurrah!
+logging.info("Generator is %s" % GEN)
+AGILe.loadGenLibs(GEN)
+gen = AGILe.createGen()
+
+
+## Config and run generator
+logging.debug("Generator name = %s" % gen.getName())
+logging.info("Setting initial state: %s @ %2.1f GeV -> <- %s @ %2.1f GeV" % (str(PID_A), E_A, str(PID_B), E_B))
+gen.setInitialState(PID_A, E_A, PID_B, E_B)
+logging.info("Setting random seed = %d" % RNGSEED)
+gen.setSeed(RNGSEED)
+for pname in PARAMKEYS:
+    pval = PARAMS[pname]
+    if pname.startswith("RG:"):
+        logging.info("Skipping meta-param %s = %s" % (pname, pval))
+        continue
+    logging.info("Setting parameter %s = %s" % (pname,pval))
+    gen.setParam(pname,pval)
+
+
+## Set up Run
+OUT = ""
+if opts.OUTFILE:
+    # if opts.OUTFILE != "-" and not "." in opts.OUTFILE:
+    #     opts.OUTFILE += ".hepmc"
+    OUT = opts.OUTFILE
+run = AGILe.Run(gen, OUT, opts.PRECISION)
+run.setFilter(opts.FILTER_EVENTS)
+
+## Make and write events
+for i in range(NEVTS):
+    st = run.makeEvent()
+    logging.debug(run.eventSummary())
+    if not st:
+        logging.error("Writing events failed")
+        break
+    if RECVD_KILL_SIGNAL is not None:
+        logging.critical("Leaving event loop early due to signal " + str(RECVD_KILL_SIGNAL))
+        break
+gen.finalize()
